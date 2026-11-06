@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "hha_void",
+  "version": "${version}",
+  "name": "HHA_void",
+  "description": "A void armor addon for the HHA mod.",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/hha_void/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "dev.henny.hha_void.client.Hha_voidClient"
+    ],
+    "main": [
+      "dev.henny.hha_void.Hha_void"
+    ],
+    "hha": [
+      "dev.henny.hha_void.VoidAddon"
+    ],
+    "hha_client": [
+      "dev.henny.hha_void.client.VoidAddonClient"
+    ]
+  },
+  "mixins": [
+    "hha_void.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "fabric-api": "*",
+    "hha": ">=0.6.0",
+    "minecraft": "${minecraft_version}"
+  }
+}

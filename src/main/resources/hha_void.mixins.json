@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.henny.hha_void.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FireballEntityMixin"
+  ],
+  "client": [
+    "client.ArmorFeatureRendererMixin",
+    "client.CameraMixin",
+    "client.EntityLookMixin",
+    "client.EntityRenderManagerMixin",
+    "client.GameRendererMixin",
+    "client.InGameHudMixin",
+    "client.KeyboardInputMixin",
+    "client.MinecraftClientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

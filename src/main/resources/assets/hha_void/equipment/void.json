@@ -1,0 +1,10 @@
+{
+  "layers": {
+    "humanoid": [
+      { "texture": "hha_void:void" }
+    ],
+    "humanoid_leggings": [
+      { "texture": "hha_void:void" }
+    ]
+  }
+}

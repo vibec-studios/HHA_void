@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["OEO", "ENE", "OEO"],
+  "key": {
+    "O": "minecraft:crying_obsidian",
+    "E": "minecraft:echo_shard",
+    "N": "minecraft:netherite_ingot"
+  },
+  "result": { "id": "hha_void:void_ingot", "count": 1 }
+}

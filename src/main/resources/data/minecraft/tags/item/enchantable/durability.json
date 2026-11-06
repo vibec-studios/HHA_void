@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "hha_void:void_helmet", "hha_void:void_chestplate", "hha_void:void_leggings", "hha_void:void_boots",
+    "hha_void:void_sword", "hha_void:void_mace"
+  ]
+}

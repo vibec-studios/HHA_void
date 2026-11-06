@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": "hha:jotunheims_upgrade_template",
+  "base": "minecraft:netherite_leggings",
+  "addition": "hha_void:void_ingot",
+  "result": { "id": "hha_void:void_leggings", "count": 1 }
+}
