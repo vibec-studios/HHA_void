@@ -16,7 +16,8 @@ base {
 
 val targetJavaVersion = 21
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
     // If you remove this line, sources will not be generated.
@@ -43,7 +44,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
 
     // HHA-Basis-Mod (Addon-API) — Jar liegt in libs/
-    modImplementation(files("libs/HHA-0.6.0.jar"))
+    modImplementation(files("libs/HHA-0.8.0.jar"))
 }
 
 tasks.processResources {
@@ -96,5 +97,24 @@ publishing {
         // Notice: This block does NOT have the same function as the block in the top level.
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
+    }
+}
+
+// Echter Client-Test mit Screenshots (./gradlew runClientGameTest, Bilder unter build/run/clientGameTest/screenshots).
+// Modus per Umgebungsvariable HHA_VOID_TEST (siehe VoidClientGameTest).
+fabricApi {
+    configureTests {
+        createSourceSet.set(true)
+        modId.set("hha_void-gametest")
+        enableGameTests.set(false)
+        enableClientGameTests.set(true)
+        eula.set(true)
+    }
+}
+
+// HHA 0.8.0 sendet unterhalb der Fabric-Paket-API; der Netzwerk-Synchronizer des Client-Tests bricht sonst ab.
+loom {
+    runs.matching { it.name == "clientGameTest" }.configureEach {
+        vmArg("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
     }
 }

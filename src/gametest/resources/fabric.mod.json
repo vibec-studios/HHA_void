@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "hha_void-gametest",
+  "version": "1.0.0",
+  "name": "HHA Void Gametest",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-client-gametest": ["dev.henny.hha_void.gametest.VoidClientGameTest"]
+  },
+  "depends": {"hha_void": "*"}
+}

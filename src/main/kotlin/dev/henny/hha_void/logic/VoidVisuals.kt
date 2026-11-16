@@ -10,7 +10,7 @@ import net.minecraft.util.math.Vec3d
 /** Server-Seite der 3D-Effekte: schickt Effekt-Ereignisse an alle Spieler in Sichtweite. */
 object VoidVisuals {
 
-    private const val VIEW_RANGE = 192.0
+    private const val VIEW_RANGE = 420.0
     private var nextId = 1
 
     fun newId(): Int = nextId++
@@ -111,6 +111,13 @@ object VoidVisuals {
     fun cutscene(world: ServerWorld, scene: Int, bossId: Int, anchor: Vec3d, yaw: Float) =
         send(world, anchor, VoidFxPayload(VoidFxKind.CUTSCENE, scene, bossId, a = anchor, x = yaw))
 
+    /** Cutscene nur für einen Spieler (z. B. die Fahrt durch den Bauch für die Verschlungenen). */
+    fun cutsceneTo(player: net.minecraft.server.network.ServerPlayerEntity, scene: Int, bossId: Int, anchor: Vec3d, yaw: Float) {
+        if (ServerPlayNetworking.canSend(player, VoidFxPayload.ID)) {
+            ServerPlayNetworking.send(player, VoidFxPayload(VoidFxKind.CUTSCENE, scene, bossId, a = anchor, x = yaw))
+        }
+    }
+
     /** Kette zwischen zwei Entities. */
     fun chain(world: ServerWorld, fromEntity: Int, toEntity: Int, at: Vec3d, durationTicks: Int) =
         send(world, at, VoidFxPayload(VoidFxKind.CHAIN, fromEntity, toEntity, a = at, x = durationTicks.toFloat()))
@@ -139,4 +146,64 @@ object VoidVisuals {
 
     fun burst(world: ServerWorld, pos: Vec3d, strength: Int) =
         send(world, pos, VoidFxPayload(VoidFxKind.BURST, a = pos, x = strength.toFloat()))
+
+    // ---------- Leviathan ----------
+
+    /** Warnzone am Boden: Kreis mit Radius [radius], füllt sich [delayTicks] lang; [style] 0 = Gefahr, 1 = sicher (Lücke), 2 = Geysir. */
+    fun zone(world: ServerWorld, ground: Vec3d, radius: Double, delayTicks: Int, style: Int = 0) =
+        send(world, ground, VoidFxPayload(VoidFxKind.ZONE, style, a = ground, x = radius.toFloat(), y = delayTicks.toFloat()))
+
+    /**
+     * Flutwelle: Wand aus Leere, Mitte bei [start], läuft je Tick um [step]; [halfLength] quer, [height] hoch.
+     * [gaps] = Versatz der Lücken quer zur Laufrichtung (x, y) und ihre halbe Breite (z). [warmupTicks] steht sie still.
+     */
+    fun wave(world: ServerWorld, start: Vec3d, step: Vec3d, gaps: Vec3d, halfLength: Double, height: Int, durationTicks: Int, warmupTicks: Int) =
+        send(world, start, VoidFxPayload(VoidFxKind.WAVE, height, warmupTicks, a = start, b = step, c = gaps, x = halfLength.toFloat(), y = durationTicks.toFloat()))
+
+    /** Markierte Bahn am Boden von [from] nach [to] (halbe Breite [halfWidth]), [delayTicks] Vorwarnung. */
+    fun line(world: ServerWorld, from: Vec3d, to: Vec3d, halfWidth: Double, delayTicks: Int) =
+        send(world, from, VoidFxPayload(VoidFxKind.LINE, a = from, b = to, x = halfWidth.toFloat(), y = delayTicks.toFloat()))
+
+    /** Sternschnuppen fallen [durationTicks] lang über [center] (Radius [radius]). */
+    fun starfall(world: ServerWorld, center: Vec3d, radius: Double, count: Int, durationTicks: Int) =
+        send(world, center, VoidFxPayload(VoidFxKind.STARFALL, count, a = center, x = radius.toFloat(), y = durationTicks.toFloat()))
+
+    /**
+     * Sternenatem: Strahl aus dem Maul des Wals [bossId]. Während [charge] Ticks zeigt eine flackernde Linie am Boden
+     * die Bahn von [from] nach [to], dann fegt der Strahl [fire] Ticks lang darüber ([passes] = 2: hin und zurück).
+     * [width] = Dicke. Danach bleibt die Brandspur kurz liegen und zerspringt (die Splitter schickt der Server).
+     */
+    fun starBreath(world: ServerWorld, bossId: Int, from: Vec3d, to: Vec3d, charge: Int, fire: Int, passes: Int, width: Float) =
+        send(world, from, VoidFxPayload(VoidFxKind.STAR_BREATH, bossId, passes, a = from, b = to, c = Vec3d(charge.toDouble(), fire.toDouble(), 0.0), x = width))
+
+    /**
+     * Harpune [tether] fliegt vom Geschütz [from] in [travel] Ticks zum Volumen [volume] des Wals [bossId] und bleibt
+     * als gespanntes Seil bis [HARPOON_END] (oder höchstens [hold] Ticks).
+     */
+    fun harpoon(world: ServerWorld, tether: Int, bossId: Int, volume: Int, from: Vec3d, travel: Int, hold: Int) =
+        send(world, from, VoidFxPayload(VoidFxKind.HARPOON, bossId, volume, a = from, c = Vec3d(tether.toDouble(), 0.0, 0.0), x = travel.toFloat(), y = hold.toFloat()))
+
+    fun harpoonEnd(world: ServerWorld, tether: Int, at: Vec3d) =
+        send(world, at, VoidFxPayload(VoidFxKind.HARPOON_END, tether, a = at))
+
+    /** Der Spieler wurde vom Rücken des Wals geworfen: der Client trägt ihn [ticks] lang nicht mehr mit. */
+    fun rideRelease(player: net.minecraft.server.network.ServerPlayerEntity, ticks: Int) {
+        if (ServerPlayNetworking.canSend(player, VoidFxPayload.ID)) {
+            ServerPlayNetworking.send(player, VoidFxPayload(VoidFxKind.RIDE_RELEASE, a = player.entityPos, x = ticks.toFloat()))
+        }
+    }
+
+    /** Kreissektor am Boden (Winkel [a0]..[a1] im Bogenmaß, Radius [inner]..[outer]) leuchtet [delay] Ticks, dann bricht er auf. */
+    fun sector(world: ServerWorld, center: Vec3d, a0: Double, a1: Double, inner: Double, outer: Double, delay: Int) =
+        send(world, center, VoidFxPayload(VoidFxKind.SECTOR, a = center, b = Vec3d(a0, a1, inner), x = outer.toFloat(), y = delay.toFloat()))
+
+    /**
+     * Bildschirm eines Spielers: [mode] 0 = in [a] Ticks schwarz, [b] Ticks halten, dann aufhellen; 1 = weißer Blitz;
+     * 2 = roter Puls; 3 = aus Schwarz aufhellen ([a] Ticks); 4 = Bauch-Vignette ([a] Ticks, pulsierend).
+     */
+    fun screen(player: net.minecraft.server.network.ServerPlayerEntity, mode: Int, a: Int, b: Int = 0) {
+        if (ServerPlayNetworking.canSend(player, VoidFxPayload.ID)) {
+            ServerPlayNetworking.send(player, VoidFxPayload(VoidFxKind.SCREEN, mode, a = player.entityPos, x = a.toFloat(), y = b.toFloat()))
+        }
+    }
 }

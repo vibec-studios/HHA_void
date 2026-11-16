@@ -21,6 +21,7 @@ class Hha_voidClient : ClientModInitializer {
         VoidTooltips.register()
         dev.henny.hha_void.client.fx.VoidFxClient.init()
         dev.henny.hha_void.client.boss.VoidBossClient.init()
+        VoidMusic.init()
 
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             tick++

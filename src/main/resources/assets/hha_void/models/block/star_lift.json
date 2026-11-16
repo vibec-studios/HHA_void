@@ -1,0 +1,13 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": { "particle": "hha_void:block/star_lift", "beam": "hha_void:block/star_lift" },
+  "elements": [
+    {
+      "from": [2, 0, 2], "to": [14, 16, 14], "shade": false,
+      "faces": {
+        "north": { "texture": "#beam" }, "south": { "texture": "#beam" },
+        "east": { "texture": "#beam" }, "west": { "texture": "#beam" }
+      }
+    }
+  ]
+}

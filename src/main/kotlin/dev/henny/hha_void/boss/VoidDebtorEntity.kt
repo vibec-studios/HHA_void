@@ -1,35 +1,24 @@
 package dev.henny.hha_void.boss
 
+import dev.henny.hha_void.VoidSounds
 import net.minecraft.entity.EntityType
-import net.minecraft.entity.ai.goal.ActiveTargetGoal
-import net.minecraft.entity.ai.goal.LookAroundGoal
-import net.minecraft.entity.ai.goal.LookAtEntityGoal
-import net.minecraft.entity.ai.goal.MeleeAttackGoal
-import net.minecraft.entity.ai.goal.SwimGoal
-import net.minecraft.entity.ai.goal.WanderAroundFarGoal
-import net.minecraft.entity.mob.HostileEntity
-import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.damage.DamageSource
+import net.minecraft.entity.mob.VexEntity
 import net.minecraft.sound.SoundEvent
-import net.minecraft.sound.SoundEvents
 import net.minecraft.world.World
 
-/** Schuldner: frühere Konten Vaels, die für ihn eintreiben. Kleine Diener in den späteren Phasen. */
-class VoidDebtorEntity(type: EntityType<out VoidDebtorEntity>, world: World) : HostileEntity(type, world) {
+/**
+ * Sternling: kleiner leuchtender Sternrochen, den Oruun aus der Leere ruft. Fliegt wie ein Vex
+ * (durch Wände, Sturzangriffe auf das Ziel seines Herrn) und verglüht nach einer Weile von selbst.
+ * Die ID bleibt `void_debtor`, damit alte Welten nichts verlieren.
+ */
+class VoidDebtorEntity(type: EntityType<out VoidDebtorEntity>, world: World) : VexEntity(type, world) {
 
     init {
-        experiencePoints = 10
+        experiencePoints = 6
     }
 
-    override fun initGoals() {
-        goalSelector.add(0, SwimGoal(this))
-        goalSelector.add(2, MeleeAttackGoal(this, 1.15, false))
-        goalSelector.add(5, WanderAroundFarGoal(this, 0.9))
-        goalSelector.add(6, LookAtEntityGoal(this, PlayerEntity::class.java, 12f))
-        goalSelector.add(7, LookAroundGoal(this))
-        targetSelector.add(1, ActiveTargetGoal(this, PlayerEntity::class.java, true))
-    }
-
-    override fun getAmbientSound(): SoundEvent = SoundEvents.ENTITY_VEX_AMBIENT
-    override fun getHurtSound(source: net.minecraft.entity.damage.DamageSource): SoundEvent = SoundEvents.ENTITY_VEX_HURT
-    override fun getDeathSound(): SoundEvent = SoundEvents.ENTITY_VEX_DEATH
+    override fun getAmbientSound(): SoundEvent = VoidSounds.STARLING_AMBIENT
+    override fun getHurtSound(source: DamageSource): SoundEvent = VoidSounds.STARLING_HURT
+    override fun getDeathSound(): SoundEvent = VoidSounds.STARLING_DEATH
 }

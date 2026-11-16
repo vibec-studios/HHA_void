@@ -1,0 +1,17 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": { "particle": "hha_void:block/leviathan_acid", "top": "hha_void:block/leviathan_acid" },
+  "elements": [
+    {
+      "from": [0, 0, 0], "to": [16, 12, 16],
+      "faces": {
+        "up": { "texture": "#top" },
+        "north": { "uv": [0, 4, 16, 16], "texture": "#top", "cullface": "north" },
+        "south": { "uv": [0, 4, 16, 16], "texture": "#top", "cullface": "south" },
+        "east": { "uv": [0, 4, 16, 16], "texture": "#top", "cullface": "east" },
+        "west": { "uv": [0, 4, 16, 16], "texture": "#top", "cullface": "west" },
+        "down": { "texture": "#top", "cullface": "down" }
+      }
+    }
+  ]
+}

@@ -30,8 +30,8 @@ import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
 /**
- * Das Pult des Gläubigers in der Mitte des Tribunals. Sobald jemand herantritt, ruft es
- * Vael. Danach ist es verbraucht, bis jemand mit einem Void-Barren die Schuld neu anerkennt.
+ * Der Ruf der Tiefe in der Mitte der Sternentiefe. Sobald jemand herantritt, singt er und ruft
+ * Oruun, den Sternenwal. Danach ist er verbraucht, bis jemand ihn mit einem Void-Barren neu stimmt.
  */
 class VoidAltarBlock(settings: Settings) : BlockWithEntity(settings) {
 
@@ -79,7 +79,14 @@ class VoidAltarBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(VoidB
         markDirty()
     }
 
+    private var registered = false
+
     fun tick(world: ServerWorld, pos: BlockPos) {
+        // natürlich erzeugte Arenen melden sich hier an (keine Endermen auf der Arena, siehe ArenaRegistry)
+        if (!registered) {
+            registered = true
+            ArenaRegistry.register(world, pos.down())
+        }
         if (spent) return
         val center = Vec3d.ofBottomCenter(pos)
 
@@ -94,11 +101,11 @@ class VoidAltarBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(VoidB
         val where = center.add(0.0, 7.0, 0.0)
         if (awakening == 1) {
             VoidVisuals.charge(world, where, AWAKEN_TICKS)
-            world.playSound(null, pos, SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.HOSTILE, 2f, 0.5f)
+            world.playSound(null, pos, dev.henny.hha_void.VoidSounds.WHALE_SONG, SoundCategory.HOSTILE, 3f, 0.6f)
             announce(world, center, "hha_void.boss.line.summon")
         }
         if (awakening % 12 == 0) {
-            world.playSound(null, pos, SoundEvents.BLOCK_BELL_RESONATE, SoundCategory.HOSTILE, 1.5f, 0.5f)
+            world.playSound(null, pos, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, SoundCategory.HOSTILE, 2f, 0.5f + awakening * 0.008f)
         }
         if (awakening >= AWAKEN_TICKS) {
             spent = true
@@ -108,8 +115,7 @@ class VoidAltarBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(VoidB
             boss.refreshPositionAndAngles(where.x, where.y, where.z, 0f, 0f)
             boss.arena = pos.down()
             world.spawnEntity(boss)
-            VoidVisuals.nova(world, where, 6f)
-            world.playSound(null, pos, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.HOSTILE, 2f, 0.5f)
+            VoidVisuals.nova(world, where, 4f)
         }
     }
 

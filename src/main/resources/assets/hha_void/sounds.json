@@ -1,0 +1,102 @@
+{
+  "music.whale_phase1": {
+    "sounds": [{"name": "hha_void:music/whale_phase1", "stream": true}]
+  },
+  "music.whale_phase2": {
+    "sounds": [{"name": "hha_void:music/whale_phase2", "stream": true}]
+  },
+  "music.whale_phase3": {
+    "sounds": [{"name": "hha_void:music/whale_phase3", "stream": true}]
+  },
+  "music.whale_victory": {
+    "sounds": [{"name": "hha_void:music/whale_victory", "stream": true}]
+  },
+  "ambient.deep": {
+    "sounds": [{"name": "hha_void:ambient/deep", "stream": true}]
+  },
+
+  "whale.song": {
+    "subtitle": "subtitles.hha_void.whale.song",
+    "sounds": [
+      {"name": "hha_void:whale/song1", "attenuation_distance": 64},
+      {"name": "hha_void:whale/song2", "attenuation_distance": 64},
+      {"name": "hha_void:whale/song3", "attenuation_distance": 64}
+    ]
+  },
+  "whale.groan": {
+    "subtitle": "subtitles.hha_void.whale.groan",
+    "sounds": [{"name": "hha_void:whale/groan", "attenuation_distance": 64}]
+  },
+  "whale.hurt": {
+    "subtitle": "subtitles.hha_void.whale.hurt",
+    "sounds": [
+      {"name": "hha_void:whale/hurt1", "attenuation_distance": 48},
+      {"name": "hha_void:whale/hurt2", "attenuation_distance": 48}
+    ]
+  },
+  "whale.death": {
+    "subtitle": "subtitles.hha_void.whale.death",
+    "sounds": [{"name": "hha_void:whale/death", "attenuation_distance": 96}]
+  },
+  "whale.breach": {
+    "subtitle": "subtitles.hha_void.whale.breach",
+    "sounds": [{"name": "hha_void:whale/breach", "attenuation_distance": 96}]
+  },
+
+  "rift_open": {
+    "subtitle": "subtitles.hha_void.rift_open",
+    "sounds": [{"name": "hha_void:attack/rift_open", "attenuation_distance": 64}]
+  },
+  "gravity_wave": {
+    "subtitle": "subtitles.hha_void.gravity_wave",
+    "sounds": [{"name": "hha_void:attack/gravity_wave", "attenuation_distance": 64}]
+  },
+  "black_hole": {
+    "subtitle": "subtitles.hha_void.black_hole",
+    "sounds": [{"name": "hha_void:attack/black_hole", "attenuation_distance": 48}]
+  },
+  "debris": {
+    "subtitle": "subtitles.hha_void.debris",
+    "sounds": [
+      {"name": "hha_void:attack/debris1", "attenuation_distance": 32},
+      {"name": "hha_void:attack/debris2", "attenuation_distance": 32},
+      {"name": "hha_void:attack/debris3", "attenuation_distance": 32}
+    ]
+  },
+  "star_breath": {
+    "subtitle": "subtitles.hha_void.star_breath",
+    "sounds": [{"name": "hha_void:attack/star_breath", "attenuation_distance": 64}]
+  },
+  "swallow": {
+    "subtitle": "subtitles.hha_void.swallow",
+    "sounds": [{"name": "hha_void:attack/swallow", "attenuation_distance": 48}]
+  },
+  "supernova_charge": {
+    "subtitle": "subtitles.hha_void.supernova_charge",
+    "sounds": [{"name": "hha_void:attack/supernova_charge", "attenuation_distance": 96}]
+  },
+  "supernova_blast": {
+    "subtitle": "subtitles.hha_void.supernova_blast",
+    "sounds": [{"name": "hha_void:attack/supernova_blast", "attenuation_distance": 96}]
+  },
+
+  "starling.ambient": {
+    "subtitle": "subtitles.hha_void.starling.ambient",
+    "sounds": [
+      {"name": "hha_void:starling/ambient1", "attenuation_distance": 20},
+      {"name": "hha_void:starling/ambient2", "attenuation_distance": 20},
+      {"name": "hha_void:starling/ambient3", "attenuation_distance": 20}
+    ]
+  },
+  "starling.hurt": {
+    "subtitle": "subtitles.hha_void.starling.hurt",
+    "sounds": [
+      {"name": "hha_void:starling/hurt1", "attenuation_distance": 20},
+      {"name": "hha_void:starling/hurt2", "attenuation_distance": 20}
+    ]
+  },
+  "starling.death": {
+    "subtitle": "subtitles.hha_void.starling.death",
+    "sounds": [{"name": "hha_void:starling/death", "attenuation_distance": 20}]
+  }
+}

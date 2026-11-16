@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/polished_blackstone",
+    "base": "minecraft:block/polished_blackstone",
+    "rim": "minecraft:block/crying_obsidian",
+    "iron": "minecraft:block/iron_block",
+    "bolt": "minecraft:block/end_rod",
+    "rope": "minecraft:block/purpur_block"
+  },
+  "elements": [
+    { "from": [1, 0, 1], "to": [15, 4, 15],
+      "faces": {
+        "north": { "uv": [1, 12, 15, 16], "texture": "#base" }, "south": { "uv": [1, 12, 15, 16], "texture": "#base" },
+        "east": { "uv": [1, 12, 15, 16], "texture": "#base" }, "west": { "uv": [1, 12, 15, 16], "texture": "#base" },
+        "up": { "uv": [1, 1, 15, 15], "texture": "#rim" }, "down": { "uv": [1, 1, 15, 15], "texture": "#base", "cullface": "down" } } },
+    { "from": [5, 4, 5], "to": [11, 9, 11],
+      "faces": {
+        "north": { "uv": [5, 7, 11, 12], "texture": "#iron" }, "south": { "uv": [5, 7, 11, 12], "texture": "#iron" },
+        "east": { "uv": [5, 7, 11, 12], "texture": "#iron" }, "west": { "uv": [5, 7, 11, 12], "texture": "#iron" },
+        "up": { "uv": [5, 5, 11, 11], "texture": "#iron" } } },
+    { "from": [1, 9, 6], "to": [15, 11, 10],
+      "faces": {
+        "north": { "uv": [1, 5, 15, 7], "texture": "#iron" }, "south": { "uv": [1, 5, 15, 7], "texture": "#iron" },
+        "east": { "uv": [6, 5, 10, 7], "texture": "#iron" }, "west": { "uv": [6, 5, 10, 7], "texture": "#iron" },
+        "up": { "uv": [1, 6, 15, 10], "texture": "#rope" }, "down": { "uv": [1, 6, 15, 10], "texture": "#iron" } } },
+    { "from": [7, 9, 0], "to": [9, 16, 16], "rotation": { "angle": -22.5, "axis": "x", "origin": [8, 11, 8] },
+      "faces": {
+        "north": { "uv": [6, 0, 8, 7], "texture": "#bolt" }, "south": { "uv": [6, 0, 8, 7], "texture": "#bolt" },
+        "east": { "uv": [0, 0, 16, 7], "texture": "#bolt" }, "west": { "uv": [0, 0, 16, 7], "texture": "#bolt" },
+        "up": { "uv": [6, 0, 8, 16], "texture": "#bolt" } } }
+  ]
+}

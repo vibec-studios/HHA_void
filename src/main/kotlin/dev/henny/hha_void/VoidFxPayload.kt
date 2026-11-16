@@ -36,6 +36,18 @@ object VoidFxKind {
     const val CUTSCENE = 26
     const val HOLE_END = 27
     const val SHARD_RING = 28
+
+    // Leviathan
+    const val ZONE = 29
+    const val WAVE = 30
+    const val LINE = 31
+    const val SCREEN = 32
+    const val STARFALL = 33
+    const val STAR_BREATH = 34
+    const val HARPOON = 35
+    const val HARPOON_END = 36
+    const val RIDE_RELEASE = 37
+    const val SECTOR = 38
 }
 
 /**

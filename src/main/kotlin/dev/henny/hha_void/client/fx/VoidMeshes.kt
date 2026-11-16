@@ -419,6 +419,9 @@ object VoidMeshes {
         boxStack(steppedLayers(9) { v -> 0.14f + 0.4f * v.pow(1.5f) }, 0f, 1f)
     }
 
+    /** Gerader Strahl: quadratische Säule (halbe Breite 1) von y 0 bis 1 – für den Sternenatem. */
+    val ROD: Mesh by lazy { boxStack(listOf(Layer(1f, 0f, 1f)), 0f, 1f) }
+
     /** Glatte Kuppel für den Himmel; v läuft vom Zenit (0) bis unter den Horizont (1). */
     val SKY_DOME: Mesh by lazy {
         val builder = MeshBuilder()

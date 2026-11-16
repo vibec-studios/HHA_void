@@ -49,6 +49,7 @@ object VoidFxClient {
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
             clear()
             VoidCutscene.stop()
+            VoidScreen.clear()
         }
         ClientTickEvents.END_CLIENT_TICK.register { client -> tick(client) }
 
@@ -126,6 +127,19 @@ object VoidFxClient {
             }
             VoidFxKind.SKY_BEAMS -> incoming += SkyBeamsEffect(p.a, p.x.toInt())
             VoidFxKind.CUTSCENE -> VoidCutscene.start(p.id, p.id2, p.a, p.x)
+            VoidFxKind.ZONE -> incoming += ZoneEffect(p.a, p.x, p.y.toInt().coerceAtLeast(1), p.id)
+            VoidFxKind.WAVE -> incoming += WaveEffect(p.a, p.b, p.c, p.x, p.id, p.y.toInt().coerceAtLeast(1), p.id2)
+            VoidFxKind.LINE -> incoming += LineEffect(p.a, p.b, p.x, p.y.toInt().coerceAtLeast(1))
+            VoidFxKind.STARFALL -> incoming += StarfallEffect(p.a, p.x, p.id, p.y.toInt().coerceAtLeast(1))
+            VoidFxKind.SCREEN -> VoidScreen.start(p.id, p.x.toInt(), p.y.toInt())
+            VoidFxKind.STAR_BREATH -> incoming += StarBreathEffect(p.id, p.a, p.b, p.c.x.toInt(), p.c.y.toInt().coerceAtLeast(1), p.id2.coerceAtLeast(1), p.x)
+            VoidFxKind.HARPOON -> HarpoonEffect(p.id, p.id2, p.a, p.x.toInt().coerceAtLeast(1), p.y.toInt()).also {
+                HarpoonEffect.active[p.c.x.toInt()] = it
+                incoming += it
+            }
+            VoidFxKind.HARPOON_END -> HarpoonEffect.active.remove(p.id)?.end()
+            VoidFxKind.RIDE_RELEASE -> dev.henny.hha_void.client.boss.LeviathanClient.release(p.x.toInt())
+            VoidFxKind.SECTOR -> incoming += SectorEffect(p.a, p.b.x, p.b.y, p.b.z.toFloat(), p.x, p.y.toInt().coerceAtLeast(1))
             VoidFxKind.NOVA -> {
                 incoming += NovaEffect(p.a, p.x)
                 shake(p.a, (p.x * 0.08f).coerceAtMost(1f), 40.0)
@@ -177,6 +191,7 @@ object VoidFxClient {
         if (client.isPaused) return
         clock += 1f
         VoidCutscene.tick(client)
+        VoidScreen.tick()
         shakeStrength *= 0.86f
         if (shakeStrength < 0.01f) shakeStrength = 0f
 
@@ -245,6 +260,8 @@ object VoidFxClient {
 
         for (effect in effects) guarded { effect.before(c) }
         guarded { renderBossHalo(client, c) }
+        guarded { CoreFx.glow(client, c) }
+        guarded { LeviathanHitboxOverlay.draw(client, c) }
         guarded { renderShardGlow(client, c) }
         guarded { c.provider.draw() }
 

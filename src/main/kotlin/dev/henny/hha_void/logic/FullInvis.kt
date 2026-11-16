@@ -29,7 +29,7 @@ object FullInvis {
                 val shouldHide = player.isAlive &&
                     HhaConfig.enabled("hha_void.full_invis") &&
                     VoidAddon.SET.hasFullSet(player) &&
-                    player.hasStatusEffect(StatusEffects.INVISIBILITY)
+                    hidesArmor(player)
 
                 if (shouldHide) {
                     // Regelmäßig neu senden, falls Vanilla zwischendurch resynct hat
@@ -39,6 +39,17 @@ object FullInvis {
                 }
             }
         }
+    }
+
+    /**
+     * Nur "echte" Unsichtbarkeit (Trank, Void Collapse, Notriss) versteckt auch die Rüstung.
+     * Die Nacht-Unsichtbarkeit von "Kind der Nacht" ist ambient (siehe VoidAddon) und bleibt
+     * normale Unsichtbarkeit: Körper weg, Rüstung sichtbar (Mats' Wunsch).
+     */
+    @JvmStatic
+    fun hidesArmor(player: net.minecraft.entity.LivingEntity): Boolean {
+        val invis = player.getStatusEffect(StatusEffects.INVISIBILITY) ?: return false
+        return !invis.isAmbient
     }
 
     private fun hide(player: ServerPlayerEntity) {

@@ -23,6 +23,9 @@ object VoidScene {
     const val COLLAPSE = 3
     const val REBIRTH = 4
     const val TRUE_DEATH = 5
+    const val DEVOUR = 6
+    const val BELLY = 7
+    const val BREAKOUT = 8
 }
 
 /**
@@ -38,6 +41,9 @@ object VoidCutscene {
 
         /** Der Boss selbst, [up] über seinen Füßen; für Fahrten, die ihm folgen. */
         data class Boss(val up: Double) : Key
+
+        /** Relativ zum Boss und seiner Blickrichtung: [f] vor ihm, [r] rechts von ihm, [u] über seiner Position. */
+        data class BossRel(val f: Double, val r: Double, val u: Double) : Key
 
         /** Augen des Spielers, oder der Punkt, auf den er blickt. */
         data object Eye : Key
@@ -59,12 +65,20 @@ object VoidCutscene {
 
     private class Card(val start: Int, val end: Int, val title: String, val subtitle: String, val color: Formatting)
 
+    /** Kamera-Erschütterung zwischen [start] und [end]. */
+    private class Shake(val start: Int, val end: Int, val strength: Float)
+
+    /** Schwarzblende: dunkelt von [start] bis [full] ab, bleibt bis [hold], hellt bis [end] auf (-1 = von Anfang an schwarz). */
+    private class Fade(val start: Int, val full: Int, val hold: Int, val end: Int)
+
     private class Scene(
         val length: Int,
         val shots: List<Shot>,
         val captions: List<Caption> = emptyList(),
         val cards: List<Card> = emptyList(),
         val flashes: List<Int> = emptyList(),
+        val shakes: List<Shake> = emptyList(),
+        val fades: List<Fade> = emptyList(),
     )
 
     private const val RETURN_TICKS = 15
@@ -72,86 +86,129 @@ object VoidCutscene {
     private fun line(key: String) = "hha_void.cut.$key"
     private fun title(key: String) = "hha_void.boss.title.$key"
 
+    /*
+     * Die Szenen folgen der Choreografie in VoidBossEntity (tickIntro / tickScene / updatePostDeath).
+     * Anker = Mitte des Arenabodens (Bauch-Szene: Mitte des Magens); "vorne" = Blickrichtung, die der Server mitschickt.
+     * Maße für den Leviathan (≈ 58 Blöcke lang, Körpermitte 7 Blöcke über seiner Position).
+     */
     private fun scene(id: Int): Scene = when (id) {
         VoidScene.INTRO -> Scene(
-            190,
+            220,
             listOf(
-                // Der Riss öffnet sich hoch über der leeren Arena
-                Shot(0, 60, Key.At(15.0, -6.0, 1.6), Key.At(13.0, -3.0, 1.2), Key.At(0.0, 0.0, 26.0), Key.At(0.0, 0.0, 33.0), 1.1f, 1f),
-                // Er stürzt heraus: die Kamera folgt ihm von unten
-                Shot(60, 77, Key.At(11.0, 6.0, 1.0), Key.At(11.0, 6.0, 1.0), Key.Boss(3.0), Key.Boss(3.0), 0.9f, 1.1f),
-                // Einschlag, tief am Boden
-                Shot(77, 132, Key.At(10.0, -3.0, 0.8), Key.At(8.0, -1.0, 1.6), Key.At(0.0, 0.0, 2.4), Key.At(0.6, 0.0, 5.2), 1.15f, 0.9f),
-                // Er richtet sich auf und brüllt, die Kamera weicht zurück
-                Shot(132, 175, Key.At(8.0, -1.0, 1.8), Key.At(16.0, -5.0, 3.0), Key.At(0.5, 0.0, 6.0), Key.At(0.0, 0.0, 4.0), 0.85f, 1.05f),
-                Shot(175, 190, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1.05f, 1f),
+                // Vom Boden der Plattform: Der Himmel über der Tiefe reißt auf
+                Shot(0, 34, Key.At(-12.0, -4.0, 2.4), Key.At(-9.0, -3.0, 3.0), Key.At(88.0, 0.0, 42.0), Key.At(88.0, 0.0, 44.0), 1.1f, 1f),
+                // Er schält sich aus dem Riss und gleitet heran – riesig
+                Shot(34, 94, Key.At(-2.0, 18.0, 8.0), Key.At(30.0, 26.0, 18.0), Key.Boss(7.0), Key.Boss(7.0), 0.95f, 0.85f),
+                // Halbe Runde um die Plattform, die Kamera kreist mit
+                Shot(94, 168, Key.At(-30.0, -45.0, 12.0), Key.At(30.0, -48.0, 20.0), Key.Boss(7.0), Key.Boss(7.0), 1.05f, 1.05f, arc = true),
+                // Das Brüllen, vom Boden aus gesehen
+                Shot(168, 205, Key.At(-25.0, 8.0, 2.6), Key.At(-20.0, 12.0, 2.4), Key.Boss(8.0), Key.Boss(12.0), 0.9f, 0.8f),
+                Shot(205, 220, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 0.8f, 1f),
             ),
             listOf(
-                Caption(8, 56, line("intro0")),
-                Caption(84, 110, line("intro1")),
-                Caption(110, 132, line("intro2")),
+                Caption(6, 34, line("intro0")),
+                Caption(44, 92, line("intro1")),
+                Caption(170, 218, line("intro2")),
             ),
-            listOf(Card(138, 176, title("phase1"), title("phase1.sub"), Formatting.LIGHT_PURPLE)),
-            listOf(77),
+            listOf(Card(176, 214, title("phase1"), title("phase1.sub"), Formatting.LIGHT_PURPLE)),
+            listOf(34),
+            shakes = listOf(Shake(168, 200, 0.6f)),
         )
-        VoidScene.PHASE_2, VoidScene.PHASE_3 -> {
-            val key = if (id == VoidScene.PHASE_2) "phase2" else "phase3"
-            Scene(
-                64,
-                listOf(
-                    Shot(0, 50, Key.At(13.0, -5.0, 1.2), Key.At(9.5, -2.0, 1.8), Key.At(0.0, 0.0, 4.5), Key.At(0.5, 0.0, 5.0), 1.05f, 0.9f),
-                    Shot(50, 64, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 0.88f, 1f),
-                ),
-                cards = listOf(Card(6, 52, title(key), title("$key.sub"), Formatting.LIGHT_PURPLE)),
-                flashes = listOf(0),
-            )
-        }
-        VoidScene.COLLAPSE -> Scene(
-            78,
+        // „Die Tiefe erwacht“: Brüllen, Abtauchen unter die Arena, der Boden reißt, Inseln stürzen, Durchbruch
+        VoidScene.PHASE_2 -> Scene(
+            200,
             listOf(
-                Shot(0, 34, Key.At(12.0, -4.0, 1.4), Key.At(11.0, -3.0, 2.6), Key.At(0.0, 0.0, 4.2), Key.At(0.0, 0.0, 1.6), 0.95f, 0.88f),
-                Shot(34, 66, Key.At(10.0, 3.0, 6.0), Key.At(7.0, 8.0, 5.0), Key.At(0.0, 0.0, 0.6), Key.At(0.0, 0.0, 0.6), 1f, 1f, arc = true),
-                Shot(66, 78, Key.Last, Key.Eye, Key.Last, Key.EyeLook),
+                // Brüllen, schräg von vorn – die Kamera hängt am Wal
+                Shot(0, 20, Key.BossRel(52.0, -26.0, 12.0), Key.BossRel(44.0, -22.0, 10.0), Key.Boss(8.0), Key.Boss(9.0), 1f, 0.9f),
+                // er stürzt sich über die Kante in die Tiefe (vorne = Richtung Mitte → Wal)
+                Shot(20, 60, Key.At(60.0, 22.0, 20.0), Key.At(64.0, 26.0, 16.0), Key.Boss(4.0), Key.Boss(0.0), 1f, 1.05f),
+                // Stille. Dann bricht der Boden auf – Blick über die Arena auf die Stelle am Rand gegenüber
+                Shot(60, 100, Key.At(6.0, 0.0, 20.0), Key.At(2.0, 0.0, 17.0), Key.At(-58.0, 0.0, 0.0), Key.At(-58.0, 0.0, 6.0), 1f, 0.92f),
+                // Durchbruch: von unten gesehen, er schießt in den Himmel
+                Shot(100, 150, Key.At(-6.0, 12.0, 3.5), Key.At(-10.0, 10.0, 3.5), Key.At(-58.0, 0.0, 8.0), Key.Boss(28.0), 1.1f, 0.85f),
+                Shot(150, 185, Key.At(-90.0, 40.0, 40.0), Key.At(-50.0, 70.0, 50.0), Key.Boss(7.0), Key.Boss(7.0), 0.9f, 1f, arc = true),
+                Shot(185, 200, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1f, 1f),
             ),
-            listOf(Caption(4, 32, line("collapse"))),
-            listOf(Card(36, 70, title("paid"), title("paid.sub"), Formatting.GOLD)),
+            listOf(Caption(4, 60, line("phase2")), Caption(104, 150, line("phase2b"))),
+            listOf(Card(120, 182, title("phase2"), title("phase2.sub"), Formatting.LIGHT_PURPLE)),
+            listOf(104),
+            shakes = listOf(Shake(0, 18, 0.5f), Shake(64, 100, 0.35f), Shake(100, 120, 1.2f)),
         )
-        VoidScene.REBIRTH -> Scene(
-            265,
+        // Raserei ohne Bauch-Phase (Rückfall, z. B. wenn niemand verschlungen werden konnte)
+        VoidScene.PHASE_3 -> Scene(
+            110,
             listOf(
-                // Aus dem Blick des Spielers: Die Trümmer ziehen die Kamera an
-                Shot(0, 18, Key.Eye, Key.Eye, Key.EyeLook, Key.At(0.0, 0.0, 1.0), 1f, 0.55f),
-                Shot(18, 42, Key.At(9.0, -2.5, 0.7), Key.At(7.5, -1.5, 1.0), Key.At(0.5, 0.0, 1.0), Key.At(0.5, 0.0, 1.2), 0.9f, 0.8f),
-                // Der Himmel reißt auf
-                Shot(42, 95, Key.At(17.0, -7.0, 1.2), Key.At(14.0, -2.0, 0.7), Key.At(0.0, 0.0, 16.0), Key.At(0.0, 0.0, 70.0), 1.15f, 1.25f),
-                // Die Strahlen setzen ihn wieder zusammen
-                Shot(95, 165, Key.At(8.0, -5.5, 3.0), Key.At(5.5, 7.0, 3.6), Key.At(0.0, 0.0, 1.6), Key.At(0.0, 0.0, 4.2), 1.05f, 1f, arc = true),
-                // Ganz nah am Gesicht
-                Shot(165, 205, Key.At(6.0, -0.8, 4.2), Key.At(4.6, -0.2, 5.0), Key.At(0.8, 0.0, 5.6), Key.At(0.8, 0.0, 5.7), 0.8f, 0.7f),
-                // Das Brüllen schleudert die Kamera zurück
-                Shot(205, 250, Key.At(6.0, 0.0, 4.4), Key.At(17.0, -5.0, 3.0), Key.At(0.6, 0.0, 5.6), Key.At(0.0, 0.0, 5.0), 0.8f, 1.1f),
-                Shot(250, 265, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1.1f, 1f),
+                Shot(0, 45, Key.At(36.0, -14.0, 22.0), Key.At(28.0, -10.0, 26.0), Key.Boss(7.0), Key.Boss(7.0), 1f, 0.9f),
+                Shot(45, 92, Key.At(24.0, 10.0, 30.0), Key.At(36.0, 14.0, 26.0), Key.Boss(7.0), Key.Boss(7.0), 0.85f, 1.1f),
+                Shot(92, 110, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1.1f, 1f),
             ),
+            listOf(Caption(4, 44, line("phase3"))),
+            listOf(Card(48, 100, title("phase3"), title("phase3.sub"), Formatting.GOLD)),
+            listOf(46),
+            shakes = listOf(Shake(40, 60, 0.9f)),
+        )
+        // Verschlingen: er stellt sich am Rand auf, das Maul reißt auf, alles wird hineingezogen – Schwarz
+        VoidScene.DEVOUR -> Scene(
+            180,
             listOf(
-                Caption(22, 42, line("rebirth0")),
-                Caption(52, 92, line("rebirth1")),
-                Caption(168, 204, line("rebirth2")),
+                Shot(0, 40, Key.At(-30.0, -25.0, 4.0), Key.At(-26.0, -20.0, 5.0), Key.Boss(7.0), Key.Boss(7.0), 1f, 0.95f),
+                Shot(40, 100, Key.At(-8.0, 6.0, 2.0), Key.At(-10.0, 3.0, 3.0), Key.Boss(6.0), Key.Boss(6.0), 0.95f, 0.85f),
+                // die Kamera wird selbst ins Maul gezogen
+                Shot(100, 145, Key.At(20.0, 0.0, 3.0), Key.At(52.0, 0.0, 8.0), Key.Boss(5.0), Key.Boss(5.0), 0.85f, 0.65f),
+                Shot(145, 180, Key.Last, Key.Last, Key.Last, Key.Last, 0.65f, 0.65f),
             ),
-            listOf(Card(210, 252, title("phase4"), title("phase4.sub"), Formatting.DARK_RED)),
-            listOf(18, 42, 205),
+            listOf(Caption(4, 40, line("devour0")), Caption(48, 120, line("devour1"))),
+            emptyList(),
+            emptyList(),
+            shakes = listOf(Shake(40, 140, 0.45f)),
+            fades = listOf(Fade(126, 140, 180, 181)),
+        )
+        // Im Bauch: aus dem Schwarz heraus, Fahrt durch den Magen zu den Kernen
+        VoidScene.BELLY -> Scene(
+            100,
+            listOf(
+                Shot(0, 40, Key.At(-26.0, 0.0, 0.0), Key.At(-18.0, 4.0, 3.0), Key.At(12.0, 0.0, -3.0), Key.At(14.0, 0.0, -2.0), 1.05f, 1f),
+                Shot(40, 80, Key.At(-4.0, -14.0, 2.0), Key.At(6.0, -13.0, 4.0), Key.At(17.0, 7.0, -1.0), Key.At(-17.0, -8.0, -1.0), 1f, 1f),
+                Shot(80, 100, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1f, 1f),
+            ),
+            listOf(Caption(10, 58, line("belly0")), Caption(64, 98, line("belly1"))),
+            listOf(Card(18, 70, title("belly"), title("belly.sub"), Formatting.RED)),
+            emptyList(),
+            fades = listOf(Fade(-1, 0, 6, 30)),
+        )
+        // Ausbruch: die Flanke reißt auf, die Spieler fliegen ins Freie, er bricht zusammen – Raserei
+        VoidScene.BREAKOUT -> Scene(
+            150,
+            listOf(
+                Shot(0, 22, Key.BossRel(10.0, 40.0, 16.0), Key.BossRel(6.0, 34.0, 18.0), Key.Boss(7.0), Key.Boss(7.0), 1f, 0.9f),
+                Shot(22, 60, Key.BossRel(2.0, 30.0, 12.0), Key.BossRel(-6.0, 48.0, 20.0), Key.Boss(6.0), Key.Boss(4.0), 0.9f, 1.1f),
+                Shot(60, 130, Key.At(30.0, -48.0, 10.0), Key.At(-30.0, -48.0, 14.0), Key.Boss(5.0), Key.Boss(5.0), 1.05f, 1f, arc = true),
+                Shot(130, 150, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1f, 1f),
+            ),
+            listOf(Caption(4, 22, line("breakout0")), Caption(64, 128, line("phase3"))),
+            listOf(Card(70, 130, title("phase3"), title("phase3.sub"), Formatting.GOLD)),
+            listOf(22),
+            shakes = listOf(Shake(0, 22, 0.4f), Shake(22, 40, 1.3f), Shake(56, 64, 0.8f)),
+            fades = listOf(Fade(-1, 0, 0, 12)),
         )
         else -> Scene(
-            130,
+            260,
             listOf(
-                Shot(0, 46, Key.At(11.0, -3.5, 1.8), Key.At(8.5, -1.5, 3.0), Key.At(0.4, 0.0, 4.0), Key.At(0.6, 0.0, 3.8), 0.95f, 0.85f),
-                Shot(46, 115, Key.At(9.0, 3.0, 3.0), Key.At(13.0, 5.0, 12.0), Key.At(0.0, 0.0, 2.0), Key.At(0.0, 0.0, 9.0), 1f, 1.1f),
-                Shot(115, 130, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1.1f, 1f),
+                // Das letzte Brüllen
+                Shot(0, 60, Key.At(-40.0, -20.0, 12.0), Key.At(-32.0, -16.0, 16.0), Key.Boss(7.0), Key.Boss(7.0), 1f, 0.9f),
+                // Er bäumt sich auf, rollt auf den Rücken und zerreißt in Licht
+                Shot(60, 150, Key.At(-45.0, 20.0, 14.0), Key.At(35.0, 40.0, 24.0), Key.Boss(7.0), Key.Boss(7.0), 0.9f, 1f, arc = true),
+                // Blick hinauf: ein neues Sternbild
+                Shot(150, 230, Key.At(-45.0, 0.0, 6.0), Key.At(-50.0, 0.0, 4.0), Key.At(0.0, 0.0, 45.0), Key.At(0.0, 0.0, 64.0), 1.1f, 1.25f),
+                Shot(230, 260, Key.Last, Key.Eye, Key.Last, Key.EyeLook, 1.25f, 1f),
             ),
             listOf(
-                Caption(6, 44, line("death0")),
-                Caption(50, 84, line("death1")),
+                Caption(8, 58, line("death0")),
+                Caption(150, 228, line("death1")),
             ),
-            listOf(Card(86, 118, title("closed"), title("closed.sub"), Formatting.LIGHT_PURPLE)),
+            listOf(Card(160, 215, title("end"), title("end.sub"), Formatting.LIGHT_PURPLE)),
+            listOf(150),
+            shakes = listOf(Shake(0, 40, 0.5f), Shake(90, 150, 0.3f), Shake(150, 160, 1f)),
         )
     }
 
@@ -161,6 +218,12 @@ object VoidCutscene {
     private var forward = Vec3d(0.0, 0.0, 1.0)
     private var right = Vec3d(1.0, 0.0, 0.0)
     private var bossId = 0
+
+    /** Den Boss in dieser Szene schon gesehen? Fehlt er danach länger, wurde er entfernt → zurück zum Spieler. */
+    private var bossSeen = false
+    private var bossMissing = 0
+    private var lastBossPos: Vec3d? = null
+    private var lastBossYaw = 0f
     private var savedPerspective: Perspective? = null
     private var skipHold = 0
     private var skipped = false
@@ -197,6 +260,9 @@ object VoidCutscene {
         forward = Vec3d(-sin(rad), 0.0, cos(rad))
         right = Vec3d(-cos(rad), 0.0, -sin(rad))
         bossId = boss
+        bossSeen = false
+        bossMissing = 0
+        lastBossPos = null
         active = scene(id)
         clock = 0
         skipHold = 0
@@ -227,7 +293,16 @@ object VoidCutscene {
             return
         }
         // Boss weg (zum Beispiel per Befehl entfernt): direkt zurück zum Spieler
-        val gone = clock > 5 && client.world?.getEntityById(bossId) == null
+        for (sh in scene.shakes) if (clock in sh.start..sh.end) VoidFxClient.shake(anchor, sh.strength, 1000.0)
+        // Fehlt der Boss nur, weil er (noch) zu weit weg ist, läuft die Szene mit dem Anker weiter
+        val present = client.world?.getEntityById(bossId) != null
+        if (present) {
+            bossSeen = true
+            bossMissing = 0
+        } else {
+            bossMissing++
+        }
+        val gone = bossSeen && bossMissing > 20
         if (!skipped && (gone || holdingSkip(client))) skip()
     }
 
@@ -251,7 +326,22 @@ object VoidCutscene {
             is Key.At -> anchor.add(forward.multiply(key.f)).add(right.multiply(key.r)).add(0.0, key.u, 0.0)
             is Key.Boss -> {
                 val boss = client.world?.getEntityById(bossId)
-                (boss?.getLerpedPos(tickProgress) ?: anchor).add(0.0, key.up, 0.0)
+                if (boss != null) {
+                    lastBossPos = boss.getLerpedPos(tickProgress)
+                    lastBossYaw = boss.getYaw(tickProgress)
+                }
+                (lastBossPos ?: anchor).add(0.0, key.up, 0.0)
+            }
+            is Key.BossRel -> {
+                val boss = client.world?.getEntityById(bossId)
+                if (boss != null) {
+                    lastBossPos = boss.getLerpedPos(tickProgress)
+                    lastBossYaw = boss.getYaw(tickProgress)
+                }
+                val rad = Math.toRadians(lastBossYaw.toDouble())
+                val f = Vec3d(-sin(rad), 0.0, cos(rad))
+                val r = Vec3d(-cos(rad), 0.0, -sin(rad))
+                (lastBossPos ?: anchor).add(f.multiply(key.f)).add(r.multiply(key.r)).add(0.0, key.u, 0.0)
             }
             Key.Eye -> player?.getCameraPosVec(tickProgress) ?: snapshot
             Key.EyeLook -> player?.let { it.getCameraPosVec(tickProgress).add(it.getRotationVec(tickProgress).multiply(16.0)) } ?: snapshot
@@ -284,7 +374,7 @@ object VoidCutscene {
         val client = MinecraftClient.getInstance()
         val world = client.world ?: return cam
         val entity = client.player ?: return cam
-        val from = anchor.add(0.0, 2.5, 0.0)
+        val from = anchor.add(0.0, 8.0, 0.0)
         val hit = world.raycast(RaycastContext(from, cam, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, entity))
         if (hit.type == HitResult.Type.MISS) return cam
         val back = from.subtract(hit.pos).normalize()
@@ -348,11 +438,22 @@ object VoidCutscene {
             }
         }
 
+        for (fade in scene.fades) {
+            val k = when {
+                t < fade.start -> 0f
+                t < fade.full -> (t - fade.start) / (fade.full - fade.start).coerceAtLeast(1)
+                t < fade.hold -> 1f
+                t < fade.end -> 1f - (t - fade.hold) / (fade.end - fade.hold).coerceAtLeast(1)
+                else -> 0f
+            }
+            if (k > 0f) context.fill(0, 0, w, h, ((k.coerceIn(0f, 1f) * 255f).toInt() shl 24))
+        }
+
         val font = client.textRenderer
         for (caption in scene.captions) {
             if (t < caption.start || t > caption.end) continue
             val full = Text.translatable(caption.key).string
-            // Schreibmaschine: Vael spricht langsam
+            // Schreibmaschine: Oruun singt langsam
             val shown = ((t - caption.start) * 1.6f).toInt().coerceIn(0, full.length)
             val fade = ((caption.end - t) / 5f).coerceIn(0f, 1f)
             val color = (((fade * 255f).toInt().coerceAtLeast(8)) shl 24) or 0xE6C8FF

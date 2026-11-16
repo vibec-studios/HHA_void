@@ -1,7 +1,9 @@
 {
   "type": "hha_void:void_tribunal",
   "biomes": "#hha_void:has_structure/void_tribunal",
-  "spawn_overrides": {},
+  "spawn_overrides": {
+    "monster": { "bounding_box": "full", "spawns": [] }
+  },
   "step": "surface_structures",
   "terrain_adaptation": "none"
 }

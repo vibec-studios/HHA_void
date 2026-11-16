@@ -399,9 +399,8 @@ class SkyRiftEffect(private val bossId: Int, private val onEnd: () -> Unit) : Vo
         if (dying) deadFor++
         val wanted = when {
             dying -> 0
-            phase >= 4 -> RIFT_COUNT
-            phase == 3 -> 5
-            phase == 2 -> 2
+            phase >= 3 -> RIFT_COUNT
+            phase == 2 -> 4
             else -> 0
         }
         for ((index, rift) in rifts.withIndex()) {
@@ -415,13 +414,13 @@ class SkyRiftEffect(private val bossId: Int, private val onEnd: () -> Unit) : Vo
             }
             rift.flare = (rift.flare - 0.08f).coerceAtLeast(0f)
         }
-        val domeGoal = if (!dying && phase >= 4) 1f else 0f
+        val domeGoal = if (!dying && phase >= 3) 1f else 0f
         if (domeGoal > dome) {
             dome = (dome + 0.02f).coerceAtMost(1f)
         } else if (!dying || deadFor > 40) {
             dome = (dome - 0.012f).coerceAtLeast(0f)
         }
-        val hurt = if (boss != null && phase >= 4 && !dying) 1f - boss.health / boss.maxHealth else 0f
+        val hurt = if (boss != null && phase >= 3 && !dying) 1f - boss.health / boss.maxHealth else 0f
         healthGap += (hurt - healthGap) * 0.05f
 
         flash = (flash - 0.12f).coerceAtLeast(0f)

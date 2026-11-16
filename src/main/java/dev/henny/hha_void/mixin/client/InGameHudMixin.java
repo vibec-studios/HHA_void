@@ -1,6 +1,7 @@
 package dev.henny.hha_void.mixin.client;
 
 import dev.henny.hha_void.client.fx.VoidCutscene;
+import dev.henny.hha_void.client.fx.VoidScreen;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderTickCounter;
@@ -17,7 +18,14 @@ public abstract class InGameHudMixin {
     private void hha_void$cutsceneHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (VoidCutscene.isActive()) {
             VoidCutscene.renderHud(context, tickCounter.getTickProgress(false));
+            VoidScreen.render(context, tickCounter.getTickProgress(false));
             ci.cancel();
         }
+    }
+
+    /** Überblendungen (Schwarzblende beim Verschlingen, Bauch-Vignette) liegen über allem. */
+    @Inject(method = "render", at = @At("RETURN"))
+    private void hha_void$screenFx(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        VoidScreen.render(context, tickCounter.getTickProgress(false));
     }
 }

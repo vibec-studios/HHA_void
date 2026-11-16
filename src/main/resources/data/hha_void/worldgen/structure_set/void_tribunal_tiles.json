@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "hha_void:void_tribunal_tile",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 77031,
+    "spacing": 1,
+    "separation": 0
+  }
+}
